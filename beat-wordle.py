@@ -9,6 +9,7 @@ random word with at least three different vowels.
 '''
 import random
 import regex as re
+import pandas as pd
 
 # get list of 5 letter words
 with open("dictionary.txt", 'r') as fh:
@@ -49,8 +50,13 @@ not_in_word = []
 unknown_position = []
 possible_words = fiveletterwords
 wrong_position = []
+guess_list = ''.join(current_guess)
+n_words_left = [0, 0, 0, 0, 0, 0]
+columns = ['round1', 'round2', 'round3', 'round4', 'round5', 'round6', 'guesses']
 
 while True:
+
+    n_words_left[round-1] = len(possible_words)
 
     results = list(input(f'What were the results round {round}?\n'))
 
@@ -59,6 +65,14 @@ while True:
         results = list(input(f'What were the results round {round}?\n'))
     
     if results == list('*****'): 
+        # write out game results
+        n_words_left.append([guess_list])
+        game_results = {columns[i]: n_words_left[i] for i in range(len(columns))}
+        game_tracker = pd.read_csv('game-tracker.csv')
+        game_tracker = game_tracker.append(pd.DataFrame(game_results), ignore_index=True)
+        game_tracker.to_csv('game-tracker.csv', index=False)
+
+        # celebrate!
         print(f'Woohoo! Congrats. You smashed it. You guessed the right answer in {round} tries.')
         break
 
@@ -129,7 +143,7 @@ while True:
         possible_words.remove(next_guess)
         current_guess = next_guess
     else:
-        current_guess = input("How creative! What was your guess? ")
+        current_guess = input("How creative! What was your guess? ").upper()
         try: 
             possible_words.remove(current_guess)
         except: 
@@ -138,3 +152,14 @@ while True:
 
     # increment round counter
     round += 1
+    guess_list =  guess_list + ' - ' + current_guess
+    
+
+
+"""
+TODO
+- fix data collection so it writes at end of game, not just at win
+- automate data collection. 
+- write to database instead of csv. 
+- convert to terminal app
+"""
